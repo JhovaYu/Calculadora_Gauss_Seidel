@@ -30,7 +30,10 @@ namespace Calculadora_Gauss_Seidel
             {
                 filas = int.Parse(tb_NoVariables.Text);
                 columnas = filas + 1;
-                if (filas > 10)
+                if(filas == 1)
+                {
+                    lb_aviso.Visible = true;
+                }else if (filas > 10)
                 {
                     DialogResult result = MessageBox.Show("Estas seguro que deseas colocar " + filas + " variables?", "Confirmación", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
                     //MessageBox.Show(filas.ToString());
@@ -42,10 +45,13 @@ namespace Calculadora_Gauss_Seidel
                     {
                         filas = 0;
                     }
+                    lb_aviso.Visible = false;
+
                 }
                 else
                 {
                     AjustarFilasColumnas(filas, columnas);
+                    lb_aviso.Visible = false;
                 }
 
 
@@ -63,12 +69,12 @@ namespace Calculadora_Gauss_Seidel
 
             for (int i = 0; i < filas; i++)
             {
-                tablayout_Ecuaciones.RowStyles.Add(new RowStyle(SizeType.Percent, 100f / filas));
+                tablayout_Ecuaciones.RowStyles.Add(new RowStyle(SizeType.Absolute, 30));
             }
 
-            for (int i = 0; i < columnas * 2; i++) 
+            for (int i = 0; i < columnas; i++) 
             {
-                tablayout_Ecuaciones.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100f / (columnas * 2)));
+                tablayout_Ecuaciones.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100f / columnas));
             }
 
             
@@ -78,14 +84,87 @@ namespace Calculadora_Gauss_Seidel
 
                 for (int j = 0; j < columnas; j++)
                 {
-                    
+
                     TextBox texBox = new TextBox
                     {
+                        //Multiline = true,
+                        Size = new Size(120, 20),
+                        Text = "X" + TextCounter,
                         Dock = DockStyle.Fill
                     };
-                    tablayout_Ecuaciones.Controls.Add(texBox, j * 2, i);
-                    TextCounter++; 
+                    texBox.Click += new EventHandler(TextBox_Click);
+                    tablayout_Ecuaciones.Controls.Add(texBox, j, i);
+                    if(TextCounter < columnas)
+                    {
+                        TextCounter++; 
+                    }
+                    else if (TextCounter == columnas)
+                    {
+                        texBox.Text = "";
+                    }
+                    
                 }
+            }
+        }
+
+        String valorInicial;
+
+        bool maximizar = false;
+        private void picBox_Maximizar_Click(object sender, EventArgs e)
+        {
+            if (maximizar == false)
+            {
+                this.WindowState = FormWindowState.Maximized;
+                lb_Titulo.Font = new Font(lb_Titulo.Font.FontFamily, 28);
+                lb_NoVariables.Font = new Font(lb_NoVariables.Font.FontFamily, 20);
+                tb_NoVariables.Font = new Font(tb_NoVariables.Font.FontFamily, 16);
+                lb_aviso.Font = new Font(lb_aviso.Font.FontFamily, 16);
+                tablayout_MainForm.RowStyles[0].Height = 12;
+                tablayout_MainForm.RowStyles[1].Height = 76;
+                tablayout_MainForm.RowStyles[2].Height = 12;
+                maximizar = true;
+            }
+            else
+            {
+                this.WindowState= FormWindowState.Normal;
+                lb_Titulo.Font = new Font(lb_Titulo.Font.FontFamily, 20);
+                lb_NoVariables.Font = new Font(lb_NoVariables.Font.FontFamily, 14);
+                tb_NoVariables.Font = new Font(tb_NoVariables.Font.FontFamily, 14);
+                lb_aviso.Font = new Font(lb_aviso.Font.FontFamily, 9);
+                tablayout_MainForm.RowStyles[0].Height = 20;
+                tablayout_MainForm.RowStyles[1].Height = 60;
+                tablayout_MainForm.RowStyles[2].Height = 20;
+                maximizar = false;
+            }
+            
+
+        }
+
+        private void tablayout_MainForm_Paint(object sender, PaintEventArgs e)
+        {
+
+        }
+
+        private void picBox_Hide_Click(object sender, EventArgs e)
+        {
+            this.WindowState = FormWindowState.Minimized;
+        }
+
+        private void TextBox_Click(object sender, EventArgs e)
+        {
+            TextBox clickedTextBox = sender as TextBox; // Obtener el TextBox que fue clicado
+            valorInicial = clickedTextBox.Text;
+            clickedTextBox.Clear();
+            clickedTextBox.LostFocus += new EventHandler(TextBox_FocusLeave);
+            
+        }
+
+        private void TextBox_FocusLeave(object sender, EventArgs e)
+        {
+            TextBox focusTextBox = sender as TextBox;
+            if (focusTextBox.Text == "")
+            {
+                focusTextBox.Text = valorInicial;
             }
         }
     }
