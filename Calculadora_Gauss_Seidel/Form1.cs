@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Calculadora_Gauss_Seidel.Clases;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -7,6 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
 namespace Calculadora_Gauss_Seidel
 {
@@ -21,60 +23,17 @@ namespace Calculadora_Gauss_Seidel
 
             this.Resize += MainForm_Resize;
 
-            Clases.BorderPanel[] borderPanels = new Clases.BorderPanel[6];
-            int n = borderPanels.Length;
+            PanelConBordeInferior borderPanel = new PanelConBordeInferior();
+            panel_header.Controls.Add(borderPanel);
 
-            for (int i=0; i<n; i++)
-            {
-                borderPanels[i] = new Clases.BorderPanel();
-
-                
-            }
-
-            
-
-            tablePanel_00.Controls.Add(borderPanels[4], 2, 1);
-            tablePanel_01.Controls.Add(borderPanels[5], 2, 1);
 
         }
+
+        
 
         private void pictureBox1_Click(object sender, EventArgs e)
         {
             this.Close();
-        }
-
-        private void tb_NoVariables_TextChanged(object sender, EventArgs e)
-        {
-            if (tb_NoVariables.Text != "")
-            {
-                filas = int.Parse(tb_NoVariables.Text);
-                columnas = filas + 1;
-                if(filas == 1)
-                {
-                    lb_aviso.Visible = true;
-                }else if (filas > 10)
-                {
-                    DialogResult result = MessageBox.Show("Estas seguro que deseas colocar " + filas + " variables?", "Confirmación", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
-                    //MessageBox.Show(filas.ToString());
-                    if (result == DialogResult.Yes)
-                    {
-                        AjustarFilasColumnas(filas, columnas);
-                    }
-                    else
-                    {
-                        filas = 0;
-                    }
-                    lb_aviso.Visible = false;
-
-                }
-                else
-                {
-                    AjustarFilasColumnas(filas, columnas);
-                    lb_aviso.Visible = false;
-                }
-
-
-            }
         }
 
         private void AjustarFilasColumnas(int filas, int columnas)
@@ -104,7 +63,7 @@ namespace Calculadora_Gauss_Seidel
                 for (int j = 0; j < columnas; j++)
                 {
 
-                    TextBox texBox = new TextBox
+                    System.Windows.Forms.TextBox texBox = new System.Windows.Forms.TextBox
                     {
                         //Multiline = true,
                         Size = new Size(120, 20),
@@ -152,9 +111,8 @@ namespace Calculadora_Gauss_Seidel
                 lb_NoVariables.Font = new Font(lb_NoVariables.Font.FontFamily, 20);
                 tb_NoVariables.Font = new Font(tb_NoVariables.Font.FontFamily, 16);
                 lb_aviso.Font = new Font(lb_aviso.Font.FontFamily, 16);
-                tablayout_MainForm.RowStyles[0].Height = 12;
-                tablayout_MainForm.RowStyles[1].Height = 76;
-                tablayout_MainForm.RowStyles[2].Height = 12;
+                tablayout_MainForm.RowStyles[0].Height = 10;
+                tablayout_MainForm.RowStyles[1].Height = 90;
 
                 RedondearPanel.RoundPanel(panel_main, 60);
 
@@ -169,9 +127,8 @@ namespace Calculadora_Gauss_Seidel
                 lb_NoVariables.Font = new Font(lb_NoVariables.Font.FontFamily, 14);
                 tb_NoVariables.Font = new Font(tb_NoVariables.Font.FontFamily, 14);
                 lb_aviso.Font = new Font(lb_aviso.Font.FontFamily, 9);
-                tablayout_MainForm.RowStyles[0].Height = 20;
-                tablayout_MainForm.RowStyles[1].Height = 60;
-                tablayout_MainForm.RowStyles[2].Height = 20;
+                tablayout_MainForm.RowStyles[0].Height = 14;
+                tablayout_MainForm.RowStyles[1].Height = 86;
 
                 RemoveRoundPanel(panel_main);
 
@@ -191,19 +148,60 @@ namespace Calculadora_Gauss_Seidel
             this.WindowState = FormWindowState.Minimized;
         }
 
-        private void lb_NoVariables_Click(object sender, EventArgs e)
+        private void tb_NoVariables_TextChanged_1(object sender, EventArgs e)
         {
+            if (tb_NoVariables.Text != "")
+            {
+                filas = int.Parse(tb_NoVariables.Text);
+                columnas = filas + 1;
+                if (filas == 1)
+                {
+                    lb_aviso.Visible = true;
+                }
+                else if (filas > 10)
+                {
+                    DialogResult result = MessageBox.Show("Estas seguro que deseas colocar " + filas + " variables?", "Confirmación", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+                    //MessageBox.Show(filas.ToString());
+                    if (result == DialogResult.Yes)
+                    {
+                        AjustarFilasColumnas(filas, columnas);
+                    }
+                    else
+                    {
+                        filas = 0;
+                    }
+                    lb_aviso.Visible = false;
 
+                }
+                else
+                {
+                    AjustarFilasColumnas(filas, columnas);
+                    lb_aviso.Visible = false;
+                }
+            }
         }
 
-        private void lb_aviso_Click(object sender, EventArgs e)
+        private void tb_NoVariables_Enter(object sender, EventArgs e)
         {
+            tb_NoVariables.Clear();
+            tb_NoVariables.ForeColor = Color.Black;
+            tb_NoVariables.Font = new Font(tb_NoVariables.Font.FontFamily, 20);
+                
+        }
 
+        private void tb_NoVariables_Leave(object sender, EventArgs e)
+        {
+            if(tb_NoVariables.Text == "")
+            {
+                tb_NoVariables.Text = "Ingresar numero de variables";
+                tb_NoVariables.ForeColor = SystemColors.InactiveCaption;
+                tb_NoVariables.Font = new Font(tb_NoVariables.Font.FontFamily, 9);
+            }
         }
 
         private void TextBox_Click(object sender, EventArgs e)
         {
-            TextBox clickedTextBox = sender as TextBox; // Obtener el TextBox que fue clicado
+            System.Windows.Forms.TextBox clickedTextBox = sender as System.Windows.Forms.TextBox; // Obtener el TextBox que fue clicado
             valorInicial = clickedTextBox.Text;
             clickedTextBox.Clear();
             clickedTextBox.LostFocus += new EventHandler(TextBox_FocusLeave);
@@ -212,7 +210,7 @@ namespace Calculadora_Gauss_Seidel
 
         private void TextBox_FocusLeave(object sender, EventArgs e)
         {
-            TextBox focusTextBox = sender as TextBox;
+            System.Windows.Forms.TextBox focusTextBox = sender as System.Windows.Forms.TextBox;
             if (focusTextBox.Text == "")
             {
                 focusTextBox.Text = valorInicial;
