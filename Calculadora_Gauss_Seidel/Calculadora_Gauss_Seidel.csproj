@@ -46,9 +46,11 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Algoritmo_Gauss_Seidel\GaussSeidel.cs" />
     <Compile Include="Clases\BorderPanel.cs">
       <SubType>Component</SubType>
     </Compile>
+    <Compile Include="Clases\ModificarTablas.cs" />
     <Compile Include="Clases\PanelStyler.cs">
       <SubType>Component</SubType>
     </Compile>

@@ -1,4 +1,5 @@
 ﻿using Calculadora_Gauss_Seidel.Clases;
+using Calculadora_Gauss_Seidel.Algoritmo_Gauss_Seidel;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -9,12 +10,13 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement;
+using System.Drawing.Drawing2D;
 
 namespace Calculadora_Gauss_Seidel
 {
     public partial class Form1 : Form
     {
-        int NumVariables = 0, filas = 0, columnas = 0;
+        int NumVariables = 0, filas = 0, columnas = 0, maxIteraciones = 50;
         public Form1()
         {
             InitializeComponent();
@@ -36,23 +38,25 @@ namespace Calculadora_Gauss_Seidel
             this.Close();
         }
 
-        private void AjustarFilasColumnas(int filas, int columnas)
-        {
-            tablayout_Ecuaciones.Controls.Clear();
-            tablayout_Ecuaciones.RowStyles.Clear();
-            tablayout_Ecuaciones.ColumnStyles.Clear();
+        
 
-            tablayout_Ecuaciones.RowCount = filas;
-            tablayout_Ecuaciones.ColumnCount = columnas; 
+        private void AjustarFilasColumnas(TableLayoutPanel panel,int filas, int columnas)
+        {
+            panel.Controls.Clear();
+            panel.RowStyles.Clear();
+            panel.ColumnStyles.Clear();
+
+            panel.RowCount = filas;
+            panel.ColumnCount = columnas; 
 
             for (int i = 0; i < filas; i++)
             {
-                tablayout_Ecuaciones.RowStyles.Add(new RowStyle(SizeType.Absolute, 30));
+                panel.RowStyles.Add(new RowStyle(SizeType.Absolute, 30));
             }
 
             for (int i = 0; i < columnas; i++) 
             {
-                tablayout_Ecuaciones.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100f / columnas));
+                panel.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100f / columnas));
             }
 
             
@@ -65,13 +69,12 @@ namespace Calculadora_Gauss_Seidel
 
                     System.Windows.Forms.TextBox texBox = new System.Windows.Forms.TextBox
                     {
-                        //Multiline = true,
                         Size = new Size(120, 20),
                         Text = "X" + TextCounter,
                         Dock = DockStyle.Fill
                     };
                     texBox.Click += new EventHandler(TextBox_Click);
-                    tablayout_Ecuaciones.Controls.Add(texBox, j, i);
+                    panel.Controls.Add(texBox, j, i);
                     if(TextCounter < columnas)
                     {
                         TextCounter++; 
@@ -83,6 +86,46 @@ namespace Calculadora_Gauss_Seidel
                     
                 }
             }
+        }
+
+        List<List<double>> valoresEcuaciones = new List<List<double>>();
+
+        private void ObtenerValores()
+        {
+            valoresEcuaciones.Clear(); // Limpiar la lista antes de llenar nuevamente
+
+            // Crear una fila por cada fila en el TableLayoutPanel
+            for (int i = 0; i < tablayout_Ecuaciones.RowCount; i++)
+            {
+                List<double> filaValores = new List<double>(); // Lista para los valores de cada fila
+
+                for (int j = 0; j < tablayout_Ecuaciones.ColumnCount; j++)
+                {
+                    // Obtener el control en la posición (j, i)
+                    var control = tablayout_Ecuaciones.GetControlFromPosition(j, i);
+
+                    // Verificar si es un TextBox
+                    if (control is System.Windows.Forms.TextBox texBox)
+                    {
+                        // Convertir el texto a número y almacenarlo en la lista
+                        if (double.TryParse(texBox.Text, out double valor))
+                        {
+                            filaValores.Add(valor);
+                        }
+                        else
+                        {
+                            MessageBox.Show("Por favor ingresa un número válido en todos los campos.");
+                            return;
+                        }
+                    }
+                }
+
+                // Agregar la fila con sus valores a la lista principal
+                valoresEcuaciones.Add(filaValores);
+            }
+
+            // Mostrar un mensaje para confirmar que se han almacenado los valores
+            MessageBox.Show("Valores almacenados correctamente.");
         }
 
         String valorInicial;
@@ -164,7 +207,7 @@ namespace Calculadora_Gauss_Seidel
                     //MessageBox.Show(filas.ToString());
                     if (result == DialogResult.Yes)
                     {
-                        AjustarFilasColumnas(filas, columnas);
+                        AjustarFilasColumnas(tablayout_Ecuaciones, filas, columnas);
                     }
                     else
                     {
@@ -175,7 +218,7 @@ namespace Calculadora_Gauss_Seidel
                 }
                 else
                 {
-                    AjustarFilasColumnas(filas, columnas);
+                    AjustarFilasColumnas(tablayout_Ecuaciones, filas, columnas);
                     lb_aviso.Visible = false;
                 }
             }
@@ -196,6 +239,82 @@ namespace Calculadora_Gauss_Seidel
                 tb_NoVariables.Text = "Ingresar numero de variables";
                 tb_NoVariables.ForeColor = SystemColors.InactiveCaption;
                 tb_NoVariables.Font = new Font(tb_NoVariables.Font.FontFamily, 9);
+            }
+        }
+
+        private void button1_Click(object sender, EventArgs e)
+        {
+            
+            ObtenerValores();
+            bool sinCeros = GaussSeidel.VerificarYCorregirMatriz(valoresEcuaciones, filas);
+            bool esValida = GaussSeidel.VerificarDiagonalMayorQueSuma(valoresEcuaciones, filas);
+
+            if(sinCeros == true && esValida == true)
+            {
+                List<double> B = GaussSeidel.ResolverGS(valoresEcuaciones, iniciales, tolerancia);
+                ModificarTablas.CrearTablaResultados(tablePanel_Resultado,B, filas);
+            }
+                
+               
+            
+            /*String A = ConvertirListaAString(B);
+            MessageBox.Show("Los Valores ingresados son:" + A);*/
+        }
+
+        
+        private string ConvertirListaAString(List<double> lista)
+        {
+
+            string resultado = string.Join(",", lista);
+
+            return resultado;
+        }
+
+        List<double> iniciales = new List<double>();
+        private void tb_NumIniciales_Leave(object sender, EventArgs e)
+        {
+            if(tb_NumIniciales.Text == "")
+            {
+                tb_NumIniciales.Text = "Valores Iniciales";
+                tb_NumIniciales.ForeColor = SystemColors.InactiveCaption;
+            }
+            {
+                string[] valoresTexto = tb_NumIniciales.Text.Split(',');
+                iniciales = valoresTexto.Select(double.Parse).ToList();
+            }
+        }
+
+        private void tb_NumIniciales_Enter(object sender, EventArgs e)
+        {
+            if (tb_NumIniciales.Text == "1,1,1,1")
+            {
+                tb_NumIniciales.Clear();
+            }
+            
+            tb_NumIniciales.ForeColor = SystemColors.ControlText;
+        }
+
+        private void tb_Tolerancia_Enter(object sender, EventArgs e)
+        {
+            if(tb_Tolerancia.Text == "0.001")
+            {
+                tb_Tolerancia.Clear();
+            }
+            
+            tb_Tolerancia.ForeColor = SystemColors.ControlText;
+        }
+
+        double tolerancia = 0;
+        private void tb_Tolerancia_Leave(object sender, EventArgs e)
+        {
+            if (tb_Tolerancia.Text == "")
+            {
+                tb_Tolerancia.Text = "Tolerancia";
+                tb_Tolerancia.ForeColor = SystemColors.InactiveCaption;
+            }
+            else
+            {
+                tolerancia = double.Parse(tb_Tolerancia.Text);
             }
         }
 
